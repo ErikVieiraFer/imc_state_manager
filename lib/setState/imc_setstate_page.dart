@@ -1,8 +1,7 @@
-import 'dart:math';
-
-import 'package:currency_text_input_formatter/currency_text_input_formatter.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_default_state_manager/widgets/imc_gauge.dart';
+import 'package:flutter_default_state_manager/widgets/bmi_text_field.dart';
+import 'package:flutter_default_state_manager/services/bmi_calculator_service.dart';
 import 'package:intl/intl.dart';
 
 class ImcSetStatePage extends StatefulWidget {
@@ -17,19 +16,27 @@ class _ImcSetStatePageState extends State<ImcSetStatePage> {
   final alturaEC = TextEditingController();
   final formKey = GlobalKey<FormState>();
   var imc = 0.0;
+  var _isLoading = false;
+  (String, Color)? _bmiResult;
 
   Future<void> _calcularIMC(
       {required double peso, required double altura}) async {
     setState(() {
       imc = 0;
+      _isLoading = true;
+      _bmiResult = null;
     });
 
     await Future.delayed(
       Duration(seconds: 1),
     );
 
+    final calculatedImc = BmiCalculatorService.calculateBmi(peso, altura);
+
     setState(() {
-      imc = peso / pow(altura, 2);
+      imc = calculatedImc;
+      _bmiResult = BmiCalculatorService.getBmiResult(imc);
+      _isLoading = false;
     });
   }
 
@@ -44,7 +51,7 @@ class _ImcSetStatePageState extends State<ImcSetStatePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Imc SetState'),
+        title: const Text('BMI Calculator (setState)'),
         backgroundColor: Colors.blue,
       ),
       body: SingleChildScrollView(
@@ -55,52 +62,28 @@ class _ImcSetStatePageState extends State<ImcSetStatePage> {
             child: Column(
               children: [
                 ImcGauge(imc: imc),
+                if (_bmiResult != null)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 8.0),
+                    child: Text(
+                      _bmiResult!.$1,
+                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                            color: _bmiResult!.$2,
+                          ),
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
                 SizedBox(
                   height: 20,
                 ),
-                TextFormField(
-                  controller: pesoEC,
-                  keyboardType: TextInputType.number,
-                  decoration: InputDecoration(labelText: 'Peso'),
-                  inputFormatters: [
-                    CurrencyTextInputFormatter.currency(
-                      locale: 'pt_BR',
-                      symbol: '',
-                      turnOffGrouping: true,
-                      decimalDigits: 2,
-                    ),
-                  ],
-                  // ignore: body_might_complete_normally_nullable
-                  validator: (String? value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Peso Obrigatório';
-                    }
-                  },
-                ),
-                TextFormField(
-                  controller: alturaEC,
-                  keyboardType: TextInputType.number,
-                  decoration: InputDecoration(labelText: 'Altura'),
-                  inputFormatters: [
-                    CurrencyTextInputFormatter.currency(
-                      locale: 'pt_BR',
-                      symbol: '',
-                      turnOffGrouping: true,
-                      decimalDigits: 2,
-                    ),
-                  ],
-                  // ignore: body_might_complete_normally_nullable
-                  validator: (String? value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Altura Obrigatório';
-                    }
-                  },
-                ),
+                BmiTextField(label: 'Weight (kg)', controller: pesoEC),
+                const SizedBox(height: 20),
+                BmiTextField(label: 'Height (m)', controller: alturaEC),
                 SizedBox(
                   height: 20,
                 ),
                 ElevatedButton(
-                  onPressed: () {
+                  onPressed: _isLoading ? null : () {
                     var formValid = formKey.currentState?.validate() ?? false;
                     if (formValid) {
                       var formater = NumberFormat.simpleCurrency(
@@ -110,7 +93,9 @@ class _ImcSetStatePageState extends State<ImcSetStatePage> {
                       _calcularIMC(peso: peso, altura: altura);
                     }
                   },
-                  child: Text('Calcular IMC'),
+                  child: _isLoading
+                      ? const CircularProgressIndicator(color: Colors.white)
+                      : const Text('Calculate BMI'),
                 ),
               ],
             ),

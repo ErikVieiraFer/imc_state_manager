@@ -16,30 +16,38 @@ class HomePage extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Home Page'),
-        backgroundColor: Colors.blue,
       ),
-      body: Center(
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Center(
           child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          ElevatedButton(
-            onPressed: () => _goToPage(context, ImcSetStatePage()),
-            child: Text('setState'),
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              ElevatedButton(
+                onPressed: () => _goToPage(context, const ImcSetStatePage()),
+                child: const Text('setState'),
+              ),
+              const SizedBox(height: 16),
+              ElevatedButton(
+                onPressed: () => _goToPage(context, const ValueNotifierPage()),
+                child: const Text('ValueNotifier'),
+              ),
+              const SizedBox(height: 16),
+              ElevatedButton(
+                onPressed: () =>
+                    _goToPage(context, const ImcChangeNotifierPage()),
+                child: const Text('ChangeNotifier'),
+              ),
+              const SizedBox(height: 16),
+              ElevatedButton(
+                onPressed: () => _goToPage(context, const ImcBlocPatternPage()),
+                child: const Text('Bloc Pattern (Streams)'),
+              )
+            ],
           ),
-          ElevatedButton(
-            onPressed: () => _goToPage(context, ValueNotifierPage()),
-            child: Text('ValueNotifier'),
-          ),
-          ElevatedButton(
-            onPressed: () => _goToPage(context, ImcChangeNotifierPage()),
-            child: Text('ChangeNotifier'),
-          ),
-          ElevatedButton(
-            onPressed: () => _goToPage(context, ImcBlocPatternPage()),
-            child: Text('Bloc Pattern (Streams)'),
-          )
-        ],
-      )),
+        ),
+      ),
     );
   }
 }

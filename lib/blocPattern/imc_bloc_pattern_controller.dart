@@ -1,24 +1,29 @@
 import 'dart:async';
-import 'dart:math';
 
-import 'package:flutter_default_state_manager/blocPattern/imc_state.dart';
+import 'package:flutter_default_state_manager/blocPattern/bmi_state.dart';
+import 'package:flutter_default_state_manager/services/bmi_calculator_service.dart';
 
-class ImcBlocPatternController {
-  final _imcStreamController = StreamController<ImcStates>.broadcast()
-    ..add(ImcStates(imc: 0));
-  Stream<ImcStates> get imcOut => _imcStreamController.stream;
+class BmiBlocPatternController {
+  final _bmiStateStreamController = StreamController<BmiState>.broadcast()
+    ..add(BmiState());
 
-  //valores só serão adicionados através da controler, variável privada
+  Stream<BmiState> get bmiState => _bmiStateStreamController.stream;
 
-  Future<void> calcularImc(
-      {required double peso, required double altura}) async {
-    _imcStreamController.add(ImcStateLoadind());
-    await Future.delayed(Duration(seconds: 1));
-    final imc = peso / pow(altura, 2);
-    _imcStreamController.add(ImcStates(imc: imc));
+  Future<void> calculateBmi(
+      {required double weight, required double height}) async {
+    _bmiStateStreamController.add(BmiState(isLoading: true));
+
+    await Future.delayed(const Duration(seconds: 1));
+
+    final calculatedImc = BmiCalculatorService.calculateBmi(weight, height);
+    final result = BmiCalculatorService.getBmiResult(calculatedImc);
+
+    _bmiStateStreamController.add(
+      BmiState(imc: calculatedImc, bmiResult: result, isLoading: false),
+    );
   }
 
   void dispose() {
-    _imcStreamController.close();
+    _bmiStateStreamController.close();
   }
 }
